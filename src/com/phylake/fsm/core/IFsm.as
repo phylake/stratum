@@ -1,13 +1,13 @@
 package com.phylake.fsm.core
 {
-	public interface IFsm
-	{
-		function init(value:IState):void;
-		function get currentState():IState;
-		function set states(value:Vector.<IState>):void;
+    public interface IFsm
+    {
+        function init(value:IState):void;
+        function get currentState():IState;
+        function set states(value:Vector.<IState>):void;
 
-		function mapEvent(ie:IEvent, it:ITransition):void;
+        function mapEvent(ie:IEvent, it:ITransition):void;
 
-		function pushEvent(value:IEvent):void;
-	}
+        function pushEvent(value:IEvent):void;
+    }
 }
