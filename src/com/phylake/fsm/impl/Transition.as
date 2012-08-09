@@ -4,21 +4,14 @@ package com.phylake.fsm.impl
 
     public class Transition implements ITransition
     {
+        protected var _to:IState;
+        protected var _from:IState;
+        protected var _guards:Vector.<IGuard>;
+        protected var _action:IAction;
+        
         public function Transition(fromState:IState=null, toState:IState=null)
         {
             linkStates(fromState, toState);
-        }
-
-        protected var _to:IState;
-        public function get to():IState
-        {
-            return _to;
-        }
-
-        protected var _from:IState;
-        public function get from():IState
-        {
-            return _from;
         }
 
         public function linkStates(from:IState, to:IState):void
@@ -27,7 +20,16 @@ package com.phylake.fsm.impl
             _to   = to;
         }
 
-        protected var _guards:Vector.<IGuard>;
+        public function get to():IState
+        {
+            return _to;
+        }
+
+        public function get from():IState
+        {
+            return _from;
+        }
+
         public function get guards():Vector.<IGuard>
         {
             return _guards;
@@ -37,7 +39,6 @@ package com.phylake.fsm.impl
             _guards = value;
         }
 
-        protected var _action:IAction;
         public function get action():IAction
         {
             return _action;
