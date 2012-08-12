@@ -3,14 +3,14 @@ package com.phylake.pattern.iterator
     public class VectorIterator implements IIterator
     {
         private var _idx:uint;
-        private var _collection:Vector<*>;
+        private var _collection:Vector.<*>;
         private var _autoReset:Boolean;
 
         /**
          * @param value
          * @param autoReset If true, obviates the need for hasNext() and reset()
          */
-        public function ArrayIterator(value:Vector<*>, autoReset:Boolean = true) {
+        public function VectorIterator(value:Vector.<*>, autoReset:Boolean = true) {
             _collection = value;
             _autoReset = autoReset
             _idx = 0;
