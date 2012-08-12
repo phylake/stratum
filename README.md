@@ -1,2 +1,4 @@
 - simple fsm
+- object pooling
 - iterator pattern
+- enumerable pattern
