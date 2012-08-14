@@ -6,15 +6,16 @@ package com.phylake.fsm.impl
 
     public class Fsm implements IFsm
     {
-        private var _events:Vector.<IEvent> = new Vector.<IEvent>();
-        private var _currentState:IState;
         public var unmappedEventException:Boolean;
-
+        
         /*
           key: IEvent.name
         value: [ITransition]
         */
         private var _eventMap:Object = {};
+        private var _events:Vector.<IEvent> = new Vector.<IEvent>();
+        private var _currentState:IState;
+        private var _inEventLoop:Boolean;
 
         public function init(value:IState):void
         {
@@ -38,7 +39,10 @@ package com.phylake.fsm.impl
         public function pushEvent(value:IEvent):void
         {
             _events.push(value);
-            eventLoop();
+            if (!_inEventLoop)
+            {
+                eventLoop();
+            }
         }
 
         protected function executeAction(action:IAction, event:IEvent):void
@@ -51,7 +55,7 @@ package com.phylake.fsm.impl
 
         protected function executeSubmachines(state:IState, event:IEvent):void
         {
-            for each ( var fsm:IFsm in state.subMachines )
+            for each (var fsm:IFsm in state.subMachines)
             {
                 fsm.pushEvent(event);
             }
@@ -59,8 +63,8 @@ package com.phylake.fsm.impl
 
         protected function eventLoop():void
         {
-            // with this loop I'm leaving the possibility open to altering
-            // _events outside of pushEvent while still clearing the queue
+            _inEventLoop = true;
+            
             var event:IEvent;
             var transition:ITransition;
             var foundTransition:ITransition;
@@ -118,6 +122,8 @@ package com.phylake.fsm.impl
 
                 // execute submachines with current event
                 executeSubmachines(currentState, event);
+
+                _inEventLoop = false;
             }
         }
     }
