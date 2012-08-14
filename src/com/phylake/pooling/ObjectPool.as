@@ -11,7 +11,21 @@ package com.phylake.pooling
          * allows object construction to be colocated with object reclamation
          * in a file. This method also makes the least assumptions.
          */
-        public var instantiateFunction:Function;
+        private var _instantiateFunction:Function;
+        public function set instantiateFunction(value:Function):void
+        {
+            const neverSet:Boolean = _instantiateFunction == null;
+            _instantiateFunction = value;
+
+            if (neverSet)
+            {
+                var minSize:uint = _minSize;
+                while (minSize-- > 0)
+                {
+                    this.object;
+                }
+            }
+        }
         
         /**
          * The function used to reset/reclaim or otherwise prepare the
@@ -42,16 +56,11 @@ package com.phylake.pooling
         {
             _minSize = minSize;
             _maxSize = maxSize;
-
-            while (minSize-- > 0)
-            {
-                this.object;
-            }
         }
         
         public function get object():Object
         {
-            const instance:Object = _available.pop() || instantiateFunction();
+            const instance:Object = _available.pop() || _instantiateFunction();
 
             // this is a bounded pool and we're about to run out of room
             if (_minSize < _maxSize && _inUse.length-1 >= _maxSize)
@@ -104,7 +113,7 @@ package com.phylake.pooling
                 }
             }
 
-            instantiateFunction = null;
+            _instantiateFunction = null;
             reclaimFunction = null;
             destroyFunction = null;
             _available = null;

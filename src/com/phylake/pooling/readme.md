@@ -10,6 +10,7 @@ Example usage
 =============
 
     package {
+        import com.phylake.pooling.ObjectPool;
         import flash.display.*;
         import flash.events.*;
 
@@ -45,7 +46,7 @@ Example usage
         public var two:int;
         public var three:Object;
 
-        public function PoolingExample {
+        public function PoolingExample() {
             one = "hi";
             two = 1;
         }
