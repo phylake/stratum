@@ -94,7 +94,7 @@ package com.phylake.fsm.impl
                                 {
                                     throw new IllegalOperationError("> 1 unguarded transition for " + currentState.id);
                                     // while this is an exception we have a valid transition from which to continue
-                                    continue outer;// TODO consider returning instead
+                                    break outer;// TODO consider returning instead
                                 }
 
                                 trueGuard = guard;
