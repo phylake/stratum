@@ -30,10 +30,10 @@ package com.phylake.fsm.impl
         // TODO validate reachability of states
         public function set states(value:Vector.<IState>):void {}
 
-        public function mapEvent(ie:IEvent, it:ITransition):void
+        public function mapEvent(event:String, it:ITransition):void
         {
-            _eventMap[ie.name] ||= [];
-            _eventMap[ie.name].push(it);
+            _eventMap[event] ||= [];
+            _eventMap[event].push(it);
         }
 
         public function pushEvent(value:IEvent):void

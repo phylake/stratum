@@ -6,7 +6,7 @@ package com.phylake.fsm.core
         function get currentState():IState;
         function set states(value:Vector.<IState>):void;
 
-        function mapEvent(ie:IEvent, it:ITransition):void;
+        function mapEvent(event:String, it:ITransition):void;
 
         function pushEvent(value:IEvent):void;
     }
