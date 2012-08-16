@@ -2,14 +2,14 @@ package com.phylake.fsm.impl
 {
     import com.phylake.fsm.core.*;
 
-    public class Transition implements ITransition
+    public class FsmTransition implements ITransition
     {
         protected var _to:IState;
         protected var _from:IState;
         protected var _guards:Vector.<IGuard>;
         protected var _action:IAction;
         
-        public function Transition(fromState:IState=null, toState:IState=null)
+        public function FsmTransition(fromState:IState=null, toState:IState=null)
         {
             linkStates(fromState, toState);
         }
