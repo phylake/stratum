@@ -12,14 +12,23 @@ package com.phylake.fsm.impl
           key: IEvent.name
         value: [ITransition]
         */
-        private var _eventMap:Object = {};
-        private var _events:Vector.<IEvent> = new Vector.<IEvent>();
-        private var _currentState:IState;
-        private var _inEventLoop:Boolean;
+        protected var _eventMap:Object = {};
+        protected var _events:Vector.<IEvent> = new Vector.<IEvent>();
+        protected var _initialState:IState;
+        protected var _currentState:IState;
+        protected var _inEventLoop:Boolean;
 
         public function init(value:IState):void
         {
-            _currentState = value;
+            _initialState = _currentState = value;
+        }
+
+        public function destroy():void
+        {
+            _eventMap = null;
+            _events = null;
+            _initialState = null;
+            _currentState = null;
         }
 
         public function get currentState():IState
@@ -34,15 +43,16 @@ package com.phylake.fsm.impl
         {
             _eventMap[event] ||= [];
             _eventMap[event].push(it);
+
+            /* TODO
+            verify single transition out of a state for a given event
+            when the transition is unguarded*/
         }
 
         public function pushEvent(value:IEvent):void
         {
             _events.push(value);
-            if (!_inEventLoop)
-            {
-                eventLoop();
-            }
+            eventLoop();
         }
 
         protected function executeAction(action:IAction, event:IEvent):void
@@ -55,14 +65,18 @@ package com.phylake.fsm.impl
 
         protected function executeSubmachines(state:IState, event:IEvent):void
         {
-            for each (var fsm:IFsm in state.subMachines)
+            if (state.subMachines)
             {
-                fsm.pushEvent(event);
+                for each (var fsm:IFsm in state.subMachines)
+                {
+                    fsm.pushEvent(event);
+                }
             }
         }
 
         protected function eventLoop():void
         {
+            if (_inEventLoop) return;
             _inEventLoop = true;
             
             var event:IEvent;
@@ -90,20 +104,27 @@ package com.phylake.fsm.impl
                 {
                     if (transition.from == currentState)
                     {
-                        for each (guard in transition.guards)
+                        if (transition.guards)
                         {
-                            if (guard.evaluate(this, event))
+                            for each (guard in transition.guards)
                             {
-                                if (trueGuard)
+                                if (guard.evaluate(this, event))
                                 {
-                                    throw new IllegalOperationError("> 1 unguarded transition for " + currentState.id);
-                                    // while this is an exception we have a valid transition from which to continue
-                                    break outer;// TODO consider returning instead
-                                }
+                                    if (trueGuard)
+                                    {
+                                        throw new IllegalOperationError("> 1 unguarded transition for " + currentState.id);
+                                        // while this is an exception we have a valid transition from which to continue
+                                        break outer;// TODO consider returning instead
+                                    }
 
-                                trueGuard = guard;
-                                foundTransition = transition;
+                                    trueGuard = guard;
+                                    foundTransition = transition;
+                                }
                             }
+                        }
+                        else
+                        {
+                            foundTransition = transition;
                         }
                     }
                 }
