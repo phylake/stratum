@@ -144,8 +144,9 @@ package com.phylake.fsm.impl
                 // execute submachines with current event
                 executeSubmachines(currentState, event);
 
-                _inEventLoop = false;
             }
+            
+            _inEventLoop = false;
         }
     }
 }
