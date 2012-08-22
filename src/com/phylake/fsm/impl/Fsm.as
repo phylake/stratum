@@ -7,6 +7,7 @@ package com.phylake.fsm.impl
     public class Fsm implements IFsm
     {
         public var unmappedEventException:Boolean;
+        public var noTransitionException:Boolean;
         
         /*
           key: IEvent.name
@@ -139,6 +140,10 @@ package com.phylake.fsm.impl
                     
                     // execute enterState action for the new state
                     executeAction(currentState.enterState, event);
+                }
+                else if (noTransitionException)
+                {
+                    throw new IllegalOperationError("no transition out of " + currentState.id + " for " + event.name);
                 }
 
                 // execute submachines with current event
