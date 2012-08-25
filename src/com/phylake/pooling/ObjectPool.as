@@ -14,7 +14,7 @@ package com.phylake.pooling
         protected var _instantiateFunction:Function;
         public function set instantiateFunction(value:Function):void
         {
-            if (value == null) return;
+            if (value == null) throw new ArgumentError("value is null");
 
             const neverSet:Boolean = _instantiateFunction == null;
             _instantiateFunction = value;
@@ -89,17 +89,17 @@ package com.phylake.pooling
          * needs to be bounded, using this will allow seamless switching between
          * bounded and unbounded with no refactor required.
          */
-        public function getObjectAsync(cb:Function):void
+        public function getObjectAsync(value:Function):void
         {
-            if (cb == null) throw new ArgumentError("callback was null");
+            if (value == null) throw new ArgumentError("value is null");
 
             if (_bounded && _inUse.length >= _maxSize)
             {
-                _callbacks.push(cb);
+                _callbacks.push(value);
             }
             else
             {
-                cb(getObject());
+                value(getObject());
             }
         }
 
