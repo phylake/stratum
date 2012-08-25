@@ -1,4 +1,6 @@
-- simple fsm
+- Moore-modeled finite state machine
 - object pooling
-- iterator pattern
-- enumerable pattern
+- design patterns
+ - iterator
+ - enumerable
+- misc utility functions
