@@ -11,9 +11,11 @@ package com.phylake.pooling
          * allows object construction to be colocated with object reclamation
          * in a file. This method also makes the least assumptions.
          */
-        private var _instantiateFunction:Function;
+        protected var _instantiateFunction:Function;
         public function set instantiateFunction(value:Function):void
         {
+            if (value == null) return;
+
             const neverSet:Boolean = _instantiateFunction == null;
             _instantiateFunction = value;
 
@@ -22,7 +24,7 @@ package com.phylake.pooling
                 var minSize:uint = _minSize;
                 while (minSize-- > 0)
                 {
-                    this.object;
+                    getObject();
                 }
             }
         }
@@ -39,13 +41,15 @@ package com.phylake.pooling
          */
         public var destroyFunction:Function;
 
-        public var maxSizeException:Boolean;
+        public var maxSizeException:Boolean = true;
 
-        private var _available:Vector.<Object> = new Vector.<Object>;
-        private var _inUse:Vector.<Object> = new Vector.<Object>;
+        protected var _available:Vector.<Object> = new Vector.<Object>;
+        protected var _inUse:Vector.<Object> = new Vector.<Object>;
+        protected var _callbacks:Vector.<Function> = new Vector.<Function>;
 
-        private var _minSize:uint;
-        private var _maxSize:int;
+        protected var _minSize:uint;
+        protected var _maxSize:int;
+        protected var _bounded:Boolean;
 
         /**
          * @param minSize The initial size of the pool
@@ -56,15 +60,63 @@ package com.phylake.pooling
         {
             _minSize = minSize;
             _maxSize = maxSize;
+            _bounded = _minSize < _maxSize;
         }
-        
-        public function get object():Object
-        {
-            const instance:Object = _available.pop() || _instantiateFunction();
 
-            // this is a bounded pool and we're about to run out of room
-            if (_minSize < _maxSize && _inUse.length-1 >= _maxSize)
+        public function getObject():Object
+        {
+            if (_bounded && _inUse.length >= _maxSize)
             {
+                if (maxSizeException)
+                {
+                    throw new IllegalOperationError("ObjectPool size exceeded maxSize");
+                }
+                return null;
+            }
+
+            const instance:Object = _available.pop() || _instantiateFunction();
+            _inUse.push(instance);
+            return instance;
+        }
+
+        /**
+         * Provides queue management using a continuation.
+         *
+         * With this mechanism there's no need to monitor how the ObjectPool was
+         * set up or maintain knowledge of the internal pool size.
+         *
+         * Only useful for bounded pools. Also if you don't know if your pool
+         * needs to be bounded, using this will allow seamless switching between
+         * bounded and unbounded with no refactor required.
+         */
+        public function getObjectAsync(cb:Function):void
+        {
+            if (cb == null) throw new ArgumentError("callback was null");
+
+            if (_bounded && _inUse.length >= _maxSize)
+            {
+                _callbacks.push(cb);
+            }
+            else
+            {
+                cb(getObject());
+            }
+        }
+
+        /**
+         * @param instance the object to place in the pool. a value of null will
+         * shrink the pool size
+         */
+        public function setObject(instance:Object):void
+        {
+            _inUse.pop();
+            
+            if (!instance) return;
+
+            if (_bounded && _available.length >= _maxSize)
+            {
+                if (destroyFunction != null) destroyFunction(instance);
+                
                 if (maxSizeException)
                 {
                     throw new IllegalOperationError("ObjectPool size exceeded maxSize");
@@ -72,30 +124,19 @@ package com.phylake.pooling
             }
             else
             {
-                _inUse.push(instance);
-            }
-            
-            return instance;
-        }
-
-        public function set object(instance:Object):void
-        {
-            if (!instance) return;
-            
-            _inUse.pop();
-
-            if (_minSize < _maxSize && _available.length >= _maxSize)
-            {
-                if (destroyFunction != null)
-                {
-                    destroyFunction(instance);
-                }
-            }
-            else
-            {
                 reclaimFunction(instance);
                 _available.push(instance);
+
+                if (_callbacks.length > 0)
+                {
+                    _callbacks.shift().call(null, getObject());
+                }
             }
+        }
+
+        public function get size():int
+        {
+            return _inUse.length + _available.length;
         }
 
         public function destroy(destroyInstances:Boolean = true):void
@@ -103,14 +144,8 @@ package com.phylake.pooling
             if (destroyInstances && destroyFunction != null)
             {
                 var instance:Object;
-                while (instance = _inUse.pop())
-                {
-                    destroyFunction(instance);
-                }
-                while (instance = _available.pop())
-                {
-                    destroyFunction(instance);
-                }
+                while (instance = _inUse.pop())     destroyFunction(instance);
+                while (instance = _available.pop()) destroyFunction(instance);
             }
 
             _instantiateFunction = null;

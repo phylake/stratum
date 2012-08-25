@@ -14,7 +14,7 @@ package com.phylake.fsm.impl
         value: [ITransition]
         */
         protected var _eventMap:Object = {};
-        protected var _events:Vector.<IEvent> = new Vector.<IEvent>();
+        protected var _events:Vector.<IEvent> = new Vector.<IEvent>;
         protected var _initialState:IState;
         protected var _currentState:IState;
         protected var _inEventLoop:Boolean;
@@ -93,7 +93,7 @@ package com.phylake.fsm.impl
                 {
                     if (unmappedEventException)
                     {
-                        throw new IllegalOperationError("event" + event.name + " isn't mapped");
+                        throw new IllegalOperationError("event " + event.name + " isn't mapped");
                     }
                     continue;
                 }
@@ -103,30 +103,31 @@ package com.phylake.fsm.impl
 
                 outer: for each (transition in _eventMap[event.name])
                 {
-                    if (transition.from == currentState)
+                    if (transition.from != currentState) continue;
+                    
+                    if (transition.guards)
                     {
-                        if (transition.guards)
+                        for each (guard in transition.guards)
                         {
-                            for each (guard in transition.guards)
+                            if (guard.evaluate(this, event))
                             {
-                                if (guard.evaluate(this, event))
+                                if (trueGuard)
                                 {
-                                    if (trueGuard)
-                                    {
-                                        throw new IllegalOperationError("> 1 unguarded transition for " + currentState.id);
-                                        // while this is an exception we have a valid transition from which to continue
-                                        break outer;// TODO consider returning instead
-                                    }
-
-                                    trueGuard = guard;
-                                    foundTransition = transition;
+                                    nTransitions(event);
+                                    // while this is an exception we have a valid
+                                    // transition from which to continue
+                                    break outer;
                                 }
+
+                                trueGuard = guard;
+                                foundTransition = transition;
                             }
                         }
-                        else
-                        {
-                            foundTransition = transition;
-                        }
+                    }
+                    else
+                    {
+                        if (foundTransition) nTransitions(event);
+                        foundTransition = transition;
                     }
                 }
 
@@ -143,7 +144,7 @@ package com.phylake.fsm.impl
                 }
                 else if (noTransitionException)
                 {
-                    throw new IllegalOperationError("no transition out of " + currentState.id + " for " + event.name);
+                    throw new IllegalOperationError("no transition out of " + currentState.id + " for event " + event.name);
                 }
 
                 // execute submachines with current event
@@ -151,6 +152,11 @@ package com.phylake.fsm.impl
             }
             
             _inEventLoop = false;
+        }
+
+        protected function nTransitions(event:IEvent):void
+        {
+            throw new IllegalOperationError("multiple transitions out of " + currentState.id + " for event " + event.name);
         }
     }
 }
