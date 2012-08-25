@@ -5,11 +5,11 @@ package com.phylake.pooling
     public class ObjectPool
     {
         /**
-         * The function used to instantiate a new object.
+         * Required function used to instantiate an object.
          *
          * We could have easily taken a reference to a Class instead but this
          * allows object construction to be colocated with object reclamation
-         * in a file. This method also makes the least assumptions.
+         * in a file. This approach also makes the least assumptions.
          */
         protected var _instantiateFunction:Function;
         public function set instantiateFunction(value:Function):void
@@ -30,13 +30,13 @@ package com.phylake.pooling
         }
         
         /**
-         * The function used to reset/reclaim or otherwise prepare the
+         * Required function used to reset/reclaim or otherwise prepare the
          * instance of a Class to be reused
          */
         public var reclaimFunction:Function;
 
         /**
-         * The function used to destroy/dispose or otherwise prepare the
+         * Optional function used to destroy/dispose or otherwise prepare the
          * instance of a Class for garbage collection
          */
         public var destroyFunction:Function;
