@@ -27,7 +27,7 @@ Example usage
                 pool.reclaimFunction     = PoolingExample.reclaim;
                 pool.destroyFunction     = PoolingExample.destroy;
 
-                var pe1:PoolingExample = pool.getObject();
+                var pe1:PoolingExample = PoolingExample(pool.getObject());
                 pe1.doSomething();
                 pool.setObject(pe1);// return object to be reclaimed
 
