@@ -4,7 +4,11 @@ Status : Experimental
 Description
 ===========
 
-Basic object pooling.
+Managed object pooling
+
+- bounded and unbounded pools
+- queued continuations
+- optional exceptions
 
 Example usage
 =============
@@ -22,6 +26,15 @@ Example usage
                 pool.instantiateFunction = PoolingExample.initialize;
                 pool.reclaimFunction     = PoolingExample.reclaim;
                 pool.destroyFunction     = PoolingExample.destroy;
+
+                var pe1:PoolingExample = pool.getObject();
+                pe1.doSomething();
+                pool.setObject(pe1);// return object to be reclaimed
+
+                pool.getObjectAsync(function(pe2:PoolingExample):void {
+                    pe2.doSomething();
+                    pool.setObject(pe2);// return object to be reclaimed
+                });
             }
         }
     }
@@ -50,4 +63,6 @@ Example usage
             one = "hi";
             two = 1;
         }
+
+        public function doSomething():void {}
     }
