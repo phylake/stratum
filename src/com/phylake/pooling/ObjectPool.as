@@ -127,10 +127,8 @@ package com.phylake.pooling
                 reclaimFunction(instance);
                 _available.push(instance);
 
-                if (_callbacks.length > 0)
-                {
-                    _callbacks.shift().call(null, getObject());
-                }
+                var f:Function;
+                while (f = _callbacks.shift()) f(getObject());
             }
         }
 
