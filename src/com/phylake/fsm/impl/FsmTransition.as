@@ -34,6 +34,7 @@ package com.phylake.fsm.impl
         {
             return _guards;
         }
+        
         public function set guards(value:Vector.<IGuard>):void
         {
             _guards = value;
@@ -43,6 +44,7 @@ package com.phylake.fsm.impl
         {
             return _action;
         }
+        
         public function set action(value:IAction):void
         {
             _action = value;
