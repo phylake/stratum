@@ -4,22 +4,17 @@ package com.phylake.fsm.impl
 
     public class FsmEvent implements IEvent
     {
-        private var _name:String;
-        private var _data:Object;
+        protected var _name:String;
+        protected var _data:*;
 
-        public function FsmEvent(name:String, data:Object):void
+        public function FsmEvent(name:String, data:*):void
         {
             _name = name;
             _data = data;
         }
 
-        public function get name():String
-        {
-            return _name;
-        }
-        public function get data():*
-        {
-            return _data;
-        }
+        public function get name():String { return _name; }
+        
+        public function get data():* { return _data; }
     }
 }
