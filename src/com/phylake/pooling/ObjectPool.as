@@ -24,7 +24,7 @@ package com.phylake.pooling
                 var minSize:uint = _minSize;
                 while (minSize-- > 0)
                 {
-                    getObject();
+                    _available.push(value());
                 }
             }
         }
