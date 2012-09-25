@@ -8,26 +8,56 @@ package com.phylake.fsm.impl
     {
         public var unmappedEventException:Boolean;
         public var noTransitionException:Boolean;
-        
+
         /*
           key: IEvent.name
         value: [ITransition]
         */
         protected var _eventMap:Object = {};
         protected var _events:Vector.<IEvent> = new Vector.<IEvent>;
+        protected var _states:Vector.<IState> = new Vector.<IState>;
         protected var _initialState:IState;
         protected var _currentState:IState;
         protected var _inEventLoop:Boolean;
+        protected var _that:IFsm;
+
+        /**
+         * An optional IFsm to use instead of this.
+         */
+        public function set that(value:IFsm):void
+        {
+            _that = value;
+        }
 
         public function init(value:IState):void
         {
             _initialState = _currentState = value;
         }
 
+        public function reset():void
+        {
+            mapSubmachines(function(value:Object):void {
+                if ("reset" in value)
+                {
+                    value.reset();
+                }
+            });
+            
+            _currentState = _initialState;
+        }
+
         public function destroy():void
         {
+            mapSubmachines(function(value:Object):void {
+                if ("destroy" in value)
+                {
+                    value.destroy();
+                }
+            });
+
             _eventMap = null;
             _events = null;
+            _states = null;
             _initialState = null;
             _currentState = null;
         }
@@ -38,7 +68,10 @@ package com.phylake.fsm.impl
         }
 
         // TODO validate reachability of states
-        public function set states(value:Vector.<IState>):void {}
+        public function set states(value:Vector.<IState>):void
+        {
+            _states = value;
+        }
 
         public function mapEvent(event:String, it:ITransition):void
         {
@@ -56,11 +89,28 @@ package com.phylake.fsm.impl
             eventLoop();
         }
 
+        /**
+         * Map a function f over the submachines of all states
+         * @param f function(value:Fsm):void
+         */
+        public function mapSubmachines(f:Function):void
+        {
+            if (!_states) return;
+            for each (var state:IState in _states)
+            {
+                if (!state.subMachines) continue;
+                for each (var submachine:IFsm in state.subMachines)
+                {
+                    f(submachine);
+                }
+            }
+        }
+
         protected function executeAction(action:IAction, event:IEvent):void
         {
             if (action)
             {
-                action.execute(this, event);
+                action.execute(_that || this, event);
             }
         }
 
@@ -70,6 +120,11 @@ package com.phylake.fsm.impl
             {
                 for each (var fsm:IFsm in state.subMachines)
                 {
+                    if (fsm is Fsm)
+                    {
+                        Fsm(fsm).that = this._that;
+                    }
+                    
                     fsm.pushEvent(event);
                 }
             }
@@ -95,6 +150,8 @@ package com.phylake.fsm.impl
                     {
                         throw new IllegalOperationError("event " + event.name + " isn't mapped");
                     }
+                    
+                    executeSubmachines(currentState, event);
                     continue;
                 }
 
@@ -109,7 +166,7 @@ package com.phylake.fsm.impl
                     {
                         for each (guard in transition.guards)
                         {
-                            if (guard.evaluate(this, event))
+                            if (guard.evaluate(_that || this, event))
                             {
                                 if (trueGuard)
                                 {
