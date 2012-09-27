@@ -1,6 +1,7 @@
 package com.phylake.fsm.impl
 {
     import com.phylake.fsm.core.*;
+    import com.phylake.util.tryDestroy;
     import flash.errors.IllegalOperationError;
     import flash.utils.Dictionary;
 
@@ -48,12 +49,7 @@ package com.phylake.fsm.impl
 
         public function destroy():void
         {
-            mapSubmachines(function(value:Object):void {
-                if ("destroy" in value)
-                {
-                    value.destroy();
-                }
-            });
+            mapSubmachines(tryDestroy);
 
             _eventMap = null;
             _events = null;
