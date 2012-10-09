@@ -186,6 +186,9 @@ package com.phylake.fsm.impl
 
                 if (foundTransition)
                 {
+                    // execute exitState action for the current state
+                    executeAction(currentState.exitState, event);
+
                     // execute transition action
                     executeAction(foundTransition.action, event);
 
