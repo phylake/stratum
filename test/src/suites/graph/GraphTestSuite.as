@@ -5,5 +5,8 @@ package suites.graph
     public class GraphTestSuite
     {
         public var graphTest:GraphTest;
+        public var pathTest:PathTest;
+        public var pathSetTest:PathSetTest;
+        //public var traversalTest:TraversalTest;
     }
 }

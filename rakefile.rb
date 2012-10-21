@@ -1,13 +1,18 @@
-file 'bin/app.swf' => FileList['src/**/*.as']
-file 'bin/app.swf' => FileList['test/src/**/*.as']
-file 'bin/app.swf' => FileList['test/src/**/*.mxml']
-file 'bin/app.swf' do
+SWF = File.join('bin','app.swf')
+
+file SWF => FileList['src/**/*.as']
+file SWF => FileList['test/src/**/*.as']
+file SWF => FileList['test/src/**/*.mxml']
+file SWF do
   args = ['mxmlc']
   args << '-sp src'
   args << '-sp test/src'
   args << '-library-path+=flexunit'
   args << '-static-rsls'
-  args << '-output bin/app.swf'
+  args << '-debug'
+  args << "-output #{SWF}"
+  args << '-define=CONFIG::test,true'
+  args << '-define=CONFIG::release,false'
   args << 'test/src/Main.mxml'
 
   sh args.join(' ')
@@ -17,4 +22,15 @@ task :clean do
   rm_rf 'bin'
 end
 
-task :default => 'bin/app.swf'
+task :build do
+  args = ['compc']
+  args << '-sp src'
+  args << '-include-sources src'
+  args << '-define=CONFIG::test,false'
+  args << '-define=CONFIG::release,true'
+  args << "-output #{File.join('bin', 'stratum.swc')}"
+
+  sh args.join(' ')
+end
+
+task :default => SWF
