@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<application xmlns="http://ns.adobe.com/air/application/3.0">
+	<id>com.phylake.stratum.TEST</id>
+	<filename>Stratum Test</filename>
+	<name>Stratum Test</name>
+	<versionNumber>1</versionNumber>
+	<initialWindow>
+		<content>test.swf</content>
+	<autoOrients>false</autoOrients>
+        <fullScreen>false</fullScreen>
+        <visible>false</visible>
+    </initialWindow>
+</application>

@@ -1,5 +1,6 @@
 bin
 flexunit
+node
 
 # Flash Builder
 .actionScriptProperties
