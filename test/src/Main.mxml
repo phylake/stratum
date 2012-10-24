@@ -12,6 +12,7 @@
         import mx.events.FlexEvent;
         import org.flexunit.runner.FlexUnitCore;
         import suites.graph.GraphTestSuite;
+        import suites.util.UtilTestSuite;
 
         public const core:FlexUnitCore = new FlexUnitCore;
 
@@ -20,7 +21,8 @@
             core.addListener(runner);
 
             core.run([
-                GraphTestSuite
+                GraphTestSuite,
+                UtilTestSuite
             ]);
         }
 
