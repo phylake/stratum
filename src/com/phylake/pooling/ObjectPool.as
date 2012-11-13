@@ -128,7 +128,17 @@ package com.phylake.pooling
                 _available.push(instance);
 
                 var f:Function;
-                while (f = _callbacks.shift()) f(getObject());
+                if (_bounded)
+                {
+                    while (_inUse.length < _maxSize && (f = _callbacks.shift()))
+                    {
+                        f(getObject());
+                    }
+                }
+                else
+                {
+                    while (f = _callbacks.shift()) f(getObject());
+                }
             }
         }
 
