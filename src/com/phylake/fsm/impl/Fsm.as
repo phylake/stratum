@@ -3,7 +3,6 @@ package com.phylake.fsm.impl
     import com.phylake.fsm.core.*;
     import com.phylake.util.tryDestroy;
     import flash.errors.IllegalOperationError;
-    import flash.utils.Dictionary;
 
     public class Fsm implements IFsm
     {
@@ -20,6 +19,7 @@ package com.phylake.fsm.impl
         protected var _initialState:IState;
         protected var _currentState:IState;
         protected var _inEventLoop:Boolean;
+        protected var _destroyed:Boolean;
         protected var _that:IFsm;
 
         /**
@@ -45,12 +45,20 @@ package com.phylake.fsm.impl
             });
             
             _currentState = _initialState;
+            _events = new Vector.<IEvent>;
+
+            /*
+                Accept new events because you could be on the same stack frame
+                and end up queueing events
+            */
+            _inEventLoop = false;
         }
 
         public function destroy():void
         {
             mapSubmachines(tryDestroy);
 
+            _destroyed = true;
             _eventMap = null;
             _events = null;
             _states = null;
@@ -137,6 +145,7 @@ package com.phylake.fsm.impl
             var guard:IGuard;
             var trueGuard:IGuard;//the guard allowing a state transition
             var submachine:IFsm;
+            var earlyOut:Boolean;
 
             while (event = _events.shift())
             {
@@ -188,15 +197,18 @@ package com.phylake.fsm.impl
                 {
                     // execute exitState action for the current state
                     executeAction(currentState.exitState, event);
+                    if (_destroyed) return;
 
                     // execute transition action
                     executeAction(foundTransition.action, event);
+                    if (_destroyed) return;
 
                     // complete transition
                     _currentState = foundTransition.to;
-                    
+
                     // execute enterState action for the new state
                     executeAction(currentState.enterState, event);
+                    if (_destroyed) return;
                 }
                 else if (noTransitionException)
                 {
