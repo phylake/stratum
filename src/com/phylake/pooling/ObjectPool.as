@@ -1,6 +1,7 @@
 package com.phylake.pooling
 {
     import flash.errors.IllegalOperationError;
+    import flash.utils.Dictionary;
     
     public class ObjectPool
     {
@@ -43,8 +44,12 @@ package com.phylake.pooling
 
         public var maxSizeException:Boolean = true;
 
-        protected var _available:Vector.<Object> = new Vector.<Object>;
-        protected var _inUse:Vector.<Object> = new Vector.<Object>;
+        protected var _available:Dictionary = new Dictionary;
+        protected var _availableCount:int;
+
+        protected var _inUse:Dictionary = new Dictionary;
+        protected var _inUseCount:int;
+        
         protected var _callbacks:Vector.<Function> = new Vector.<Function>;
 
         protected var _minSize:uint;
@@ -65,17 +70,33 @@ package com.phylake.pooling
 
         public function getObject():Object
         {
-            if (_bounded && _inUse.length >= _maxSize)
+            if (_bounded && _inUseCount >= _maxSize)
             {
                 if (maxSizeException)
                 {
                     throw new IllegalOperationError("ObjectPool size exceeded maxSize");
                 }
-                return null;
+                return _instantiateFunction();
             }
 
-            const instance:Object = _available.pop() || _instantiateFunction();
-            _inUse.push(instance);
+            var instance:Object;
+            for (instance in _available)
+            {
+                break;
+            }
+            
+            if (instance)
+            {
+                delete _available[instance];
+                _availableCount--;
+            }
+            else
+            {
+                instance = _instantiateFunction();
+            }
+            
+            _inUse[instance] = null;
+            _inUseCount++;
             return instance;
         }
 
@@ -93,7 +114,7 @@ package com.phylake.pooling
         {
             if (value == null) throw new ArgumentError("value is null");
 
-            if (_bounded && _inUse.length >= _maxSize)
+            if (_bounded && _inUseCount >= _maxSize)
             {
                 _callbacks.push(value);
             }
@@ -109,11 +130,15 @@ package com.phylake.pooling
          */
         public function setObject(instance:Object):void
         {
-            _inUse.pop();
-            
             if (!instance) return;
+            
+            if (instance in _inUse)
+            {
+                delete _inUse[instance];
+                _inUseCount--;
+            }
 
-            if (_bounded && _available.length >= _maxSize)
+            if (_bounded && _availableCount >= _maxSize)
             {
                 if (destroyFunction != null) destroyFunction(instance);
                 
@@ -125,12 +150,13 @@ package com.phylake.pooling
             else
             {
                 reclaimFunction(instance);
-                _available.push(instance);
+                _available[instance] = null;
+                _availableCount++;
 
                 var f:Function;
                 if (_bounded)
                 {
-                    while (_inUse.length < _maxSize && (f = _callbacks.shift()))
+                    while (_inUseCount < _maxSize && (f = _callbacks.shift()))
                     {
                         f(getObject());
                     }
@@ -144,7 +170,17 @@ package com.phylake.pooling
 
         public function get size():int
         {
-            return _inUse.length + _available.length;
+            return _inUseCount + _availableCount;
+        }
+
+        public function get available():int
+        {
+            return _availableCount;
+        }
+
+        public function get inUse():int
+        {
+            return _inUseCount;
         }
 
         public function destroy(destroyInstances:Boolean = true):void
@@ -152,8 +188,16 @@ package com.phylake.pooling
             if (destroyInstances && destroyFunction != null)
             {
                 var instance:Object;
-                while (instance = _inUse.pop())     destroyFunction(instance);
-                while (instance = _available.pop()) destroyFunction(instance);
+                for (instance in _inUse)
+                {
+                    delete _inUse[instance];
+                    destroyFunction(instance);
+                }
+                for (instance in _available)
+                {
+                    delete _available[instance];
+                    destroyFunction(instance);
+                }
             }
 
             _instantiateFunction = null;
