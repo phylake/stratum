@@ -94,9 +94,13 @@ package com.phylake.pooling
             {
                 instance = _instantiateFunction();
             }
+
+            if (instance)
+            {
+                _inUse[instance] = null;
+                _inUseCount++;
+            }
             
-            _inUse[instance] = null;
-            _inUseCount++;
             return instance;
         }
 
