@@ -9,10 +9,10 @@ package com.phylake.fsm.impl
         public var unmappedEventException:Boolean;
         public var noTransitionException:Boolean;
 
-        /*
-          key: IEvent.name
-        value: [ITransition]
-        */
+        /**
+         *   key: IEvent.name
+         * value: [ITransition]
+         */
         protected var _eventMap:Object = {};
         protected var _events:Vector.<IEvent> = new Vector.<IEvent>;
         protected var _states:Vector.<IState> = new Vector.<IState>;
@@ -20,14 +20,32 @@ package com.phylake.fsm.impl
         protected var _currentState:IState;
         protected var _inEventLoop:Boolean;
         protected var _destroyed:Boolean;
-        protected var _that:IFsm;
+        protected var _actionFsm:IFsm;
+        protected var _guardFsm:IFsm;
 
         /**
-         * An optional IFsm to use instead of this.
+         * An optional root IFsm to use for IGuard#evaluate and IAction#execute
          */
-        public function set that(value:IFsm):void
+        public function set rootFsm(value:IFsm):void
         {
-            _that = value;
+            actionFsm = value;
+            guardFsm = value;
+        }
+
+        /**
+         * An optional IFsm to use for IAction#execute
+         */
+        public function set actionFsm(value:IFsm):void
+        {
+            _actionFsm = value;
+        }
+
+        /**
+         * An optional IFsm to use for IGuard#evaluate
+         */
+        public function set guardFsm(value:IFsm):void
+        {
+            _guardFsm = value;
         }
 
         public function init(value:IState):void
@@ -114,7 +132,7 @@ package com.phylake.fsm.impl
         {
             if (action)
             {
-                action.execute(_that || this, event);
+                action.execute(_actionFsm || this, event);
             }
         }
 
@@ -124,11 +142,6 @@ package com.phylake.fsm.impl
             {
                 for each (var fsm:IFsm in state.subMachines)
                 {
-                    if (fsm is Fsm)
-                    {
-                        Fsm(fsm).that = this._that;
-                    }
-                    
                     fsm.pushEvent(event);
                 }
             }
@@ -171,7 +184,7 @@ package com.phylake.fsm.impl
                     {
                         for each (guard in transition.guards)
                         {
-                            if (guard.evaluate(_that || this, event))
+                            if (guard.evaluate(_guardFsm || this, event))
                             {
                                 if (trueGuard)
                                 {
