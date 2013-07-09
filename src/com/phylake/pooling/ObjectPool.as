@@ -25,16 +25,21 @@ package com.phylake.pooling
                 var minSize:uint = _minSize;
                 while (minSize-- > 0)
                 {
-                    _available.push(value());
+                    setObject(value());
                 }
             }
         }
         
         /**
-         * Required function used to reset/reclaim or otherwise prepare the
-         * instance of a Class to be reused
+         * Called just before an object is added to the pool.
+         * This is not guaranteed to be called as part of setObject.
          */
-        public var reclaimFunction:Function;
+        public var setObjectFunction:Function;
+
+        /**
+         * Called just before an object is retrieved from the pool.
+         */
+        public var getObjectFunction:Function;
 
         /**
          * Optional function used to destroy/dispose or otherwise prepare the
@@ -97,6 +102,7 @@ package com.phylake.pooling
 
             if (instance)
             {
+                if (getObjectFunction != null) getObjectFunction(instance);
                 _inUse[instance] = null;
                 _inUseCount++;
             }
@@ -153,7 +159,7 @@ package com.phylake.pooling
             }
             else
             {
-                reclaimFunction(instance);
+                if (setObjectFunction != null) setObjectFunction(instance);
                 _available[instance] = null;
                 _availableCount++;
 
@@ -205,7 +211,8 @@ package com.phylake.pooling
             }
 
             _instantiateFunction = null;
-            reclaimFunction = null;
+            setObjectFunction = null;
+            getObjectFunction = null;
             destroyFunction = null;
             _available = null;
             _inUse = null;

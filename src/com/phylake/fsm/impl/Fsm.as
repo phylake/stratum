@@ -22,14 +22,26 @@ package com.phylake.fsm.impl
         protected var _destroyed:Boolean;
         protected var _actionFsm:IFsm;
         protected var _guardFsm:IFsm;
+        protected var _eventFsm:IFsm;
+        protected var _rootFsm:IFsm;
 
         /**
-         * An optional root IFsm to use for IGuard#evaluate and IAction#execute
+         * An optional root IFsm to use instead of this one.
          */
         public function set rootFsm(value:IFsm):void
         {
             actionFsm = value;
             guardFsm = value;
+            eventFsm = value;
+            _rootFsm = value;
+        }
+
+        /**
+         * An optional IFsm to use for the event loop
+         */
+        public function set eventFsm(value:IFsm):void
+        {
+            _eventFsm = value;
         }
 
         /**
@@ -82,6 +94,10 @@ package com.phylake.fsm.impl
             _states = null;
             _initialState = null;
             _currentState = null;
+            _actionFsm = null;
+            _guardFsm = null;
+            _eventFsm = null;
+            _rootFsm = null;
         }
 
         public function get currentState():IState
@@ -107,8 +123,15 @@ package com.phylake.fsm.impl
 
         public function pushEvent(value:IEvent):void
         {
-            _events.push(value);
-            eventLoop();
+            if (_eventFsm)
+            {
+                _eventFsm.pushEvent(value);
+            }
+            else
+            {
+                _events.push(value);
+                eventLoop();
+            }
         }
 
         /**
@@ -158,7 +181,6 @@ package com.phylake.fsm.impl
             var guard:IGuard;
             var trueGuard:IGuard;//the guard allowing a state transition
             var submachine:IFsm;
-            var earlyOut:Boolean;
 
             while (event = _events.shift())
             {
