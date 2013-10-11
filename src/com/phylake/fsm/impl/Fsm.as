@@ -53,7 +53,7 @@ package com.phylake.fsm.impl
         public function reset():void
         {
             mapSubmachines(function(value:Object):void {
-                if ("reset" in value)
+                if ("reset" in value && value.reset is Function)
                 {
                     value.reset();
                 }
@@ -97,7 +97,7 @@ package com.phylake.fsm.impl
 
         public function mapEvent(event:String, it:ITransition):void
         {
-            _eventMap[event] ||= [];
+            _eventMap[event] || (_eventMap[event] = []);
             _eventMap[event].push(it);
 
             /* TODO
@@ -120,7 +120,7 @@ package com.phylake.fsm.impl
             if (!_states) return;
             for each (var state:IState in _states)
             {
-                if (!state.subMachines) continue;
+                if (!(state && state.subMachines)) continue;
                 for each (var submachine:IFsm in state.subMachines)
                 {
                     f(submachine);
