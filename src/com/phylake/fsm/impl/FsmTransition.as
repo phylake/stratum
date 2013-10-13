@@ -7,7 +7,7 @@ package com.phylake.fsm.impl
         protected var _to:IState;
         protected var _from:IState;
         protected var _guards:Vector.<IGuard>;
-        protected var _action:IAction;
+        protected var _actions:Vector.<IAction>;
         
         public function FsmTransition(fromState:IState=null, toState:IState=null)
         {
@@ -40,14 +40,14 @@ package com.phylake.fsm.impl
             _guards = value;
         }
 
-        public function get action():IAction
+        public function get actions():Vector.<IAction>
         {
-            return _action;
+            return _actions;
         }
         
-        public function set action(value:IAction):void
+        public function set actions(value:Vector.<IAction>):void
         {
-            _action = value;
+            _actions = value;
         }
     }
 }

@@ -6,6 +6,6 @@ package com.phylake.fsm.core
         function get from():IState;
 
         function get guards():Vector.<IGuard>;
-        function get action():IAction;
+        function get actions():Vector.<IAction>;
     }
 }

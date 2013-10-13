@@ -53,7 +53,7 @@ package com.phylake.fsm.impl
         public function reset():void
         {
             mapSubmachines(function(value:Object):void {
-                if ("reset" in value && value.reset is Function)
+                if ("reset" in value)
                 {
                     value.reset();
                 }
@@ -136,6 +136,17 @@ package com.phylake.fsm.impl
             }
         }
 
+        protected function executeActions(actions:Vector.<IAction>, event:IEvent):void
+        {
+            if (actions)
+            {
+                for each (var action:IAction in actions)
+                {
+                    action.execute(_actionFsm || this, event);
+                }
+            }
+        }
+
         protected function executeSubmachines(state:IState, event:IEvent):void
         {
             if (state.subMachines)
@@ -212,7 +223,7 @@ package com.phylake.fsm.impl
                     if (_destroyed) return;
 
                     // execute transition action
-                    executeAction(foundTransition.action, event);
+                    executeActions(foundTransition.actions, event);
                     if (_destroyed) return;
 
                     // complete transition
