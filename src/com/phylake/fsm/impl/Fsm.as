@@ -167,8 +167,7 @@ package com.phylake.fsm.impl
             var transition:ITransition;
             var foundTransition:ITransition;
             var guard:IGuard;
-            var trueGuard:IGuard;//the guard allowing a state transition
-            var submachine:IFsm;
+            var trueGuards:Boolean;
 
             while (event = _events.shift())
             {
@@ -183,7 +182,6 @@ package com.phylake.fsm.impl
                     continue;
                 }
 
-                trueGuard = null;
                 foundTransition = null;
 
                 outer: for each (transition in _eventMap[event.name])
@@ -192,21 +190,22 @@ package com.phylake.fsm.impl
                     
                     if (transition.guards)
                     {
+                        trueGuards = true;
                         for each (guard in transition.guards)
                         {
-                            if (guard.evaluate(_guardFsm || this, event))
+                            trueGuards &&= guard.evaluate(_guardFsm || this, event);
+                        }
+                        if (trueGuards)
+                        {
+                            if (foundTransition)
                             {
-                                if (trueGuard)
-                                {
-                                    nTransitions(event);
-                                    // while this is an exception we have a valid
-                                    // transition from which to continue
-                                    break outer;
-                                }
-
-                                trueGuard = guard;
-                                foundTransition = transition;
+                                nTransitions(event);
+                                // while this is an exception we have a valid
+                                // transition from which to continue
+                                break outer;
                             }
+
+                            foundTransition = transition;
                         }
                     }
                     else
